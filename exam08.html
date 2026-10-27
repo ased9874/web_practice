@@ -11,20 +11,27 @@
     a:visited {color : black;}
     a:hover {color : pink;}
     a:active {color : cyan;}
+    a:focus {border : 2px solid blue;color:red}
 </style>
 <style>
     /** { color: blue; } /* 전체 선택자 */
     p {background-color: yellow;} /*태그 선택자 */
     .c1 {border: 1px solid red;} /* 클래스 선택자 */
-    #n1 {background-color: aqua;} /*id 선택자 */
+    #n1 {background-color: aqua; color : black} /*id 선택자 */
     ul li {color:brown;} /*하위 선택자*/
     ol>li {color:chartreuse;} /*자식 선택자*/
 </style>
+    <!-- 외부 스타일 시트 연결 rel : 연결 파일이 스타일 시트임을 표시-->
+    <link rel="stylesheet" href="mystyle.css">
 <body>
     <h1 style="color: red;">css 스타일</h1>
     <h2>스타일 사용</h2>
+    <p style = "color: red; background-color: green;"><b>인라인 방식</b></p>
+    <p id="hello1"><b>외부 스타일 시트</b></p>
     <p>CSS는 디자인과 정보의 분리를 위해 사용</p>
     <p class="c1">CSS는 디자인과 정보의 분리를 위해 사용</p>
+
+    //////
     <ul>
         <li id="n1">HTML</li>
         <li>CSS</li>
@@ -32,10 +39,13 @@
     </ul>
     <ol>
         <li>HTML</li>
-        <li>CSS</li>
+        <li style = "color : red!important;">CSS</li>
         <li>JS</li>
     </ol>
-    <a href="http://www.syu.ac.kr">삼육대학교</a>
+    <a href=        "http://www.syu.ac.kr">삼육대학교</a>
+    <video controls width="100px">
+        <source src =".\368458_medium.mp4">
+    </video>
 
 </body>
 </html>
