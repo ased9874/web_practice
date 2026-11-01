@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>구구단 출력</title>
+</head>
+<body>
+    <script>
+        let a = Number(prompt('숫자를 입력하세요'))
+        let b = Number(prompt('몇 번째까지 곱할까요?'))
+
+
+        if (a==0 || b == 0) {
+            alert('0은 곱할 수 없습니다.')
+            // break; 는 if 에서 사용 불가
+        }
+        else {
+        for(let k =1; b >= k; k++) {
+            let reward = a*k
+            document.write(a + "*" + k + "=" + reward + "<br>")
+            }
+        }
+
+
+    </script>
+</body>
+</html>
