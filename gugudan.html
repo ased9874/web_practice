@@ -21,8 +21,16 @@
             document.write(a + "*" + k + "=" + reward + "<br>")
             }
         }
+    </script>
+    <script>
+        for (let a = 2; a <= 9; a++) {
+            document.write("<h3>" + a + "단</h3>");
 
-
+            for (let b = 1; b <= 9; b++) {
+                let reward = a * b;
+                document.write(a + "*" + b + "=" + reward + "<br>");
+            }
+        }
     </script>
 </body>
 </html>
