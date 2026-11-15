@@ -1,0 +1,440 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>공학용 계산기</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #202127;
+            font-family: Arial, sans-serif;
+            color: #e5e7f0;
+        }
+
+        #calc {
+            width: 100%;
+            max-width: 1100px;
+            margin: 30px auto;
+        }
+
+        #display {
+            width: 100%;
+            height: 180px;
+            background-color: #202127;
+            border: 2px solid #44464c;
+            border-radius: 35px;
+            color: #e5e7f0;
+            font-size: 55px;
+            text-align: right;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+
+        #buttons {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+        }
+
+        input[type=button] {
+            height: 105px;
+            border: none;
+            border-radius: 60px;
+            background-color: #2c303e;
+            color: #e5e7f0;
+            font-size: 28px;
+            cursor: pointer;
+        }
+
+        input[type=button]:hover {
+            background-color: #424653;
+        }
+
+        .num {
+            background-color: #383a42 !important;
+        }
+
+        .equal {
+            background-color: #3475f5 !important;
+        }
+
+        .mode {
+            grid-column: span 2;
+            display: flex;
+            gap: 5px;
+            padding: 5px;
+        }
+
+        .mode input {
+            flex: 1;
+            height: 100%;
+        }
+
+        .selected {
+            color: #a9caff !important;
+        }
+
+        @media (max-width: 600px) {
+            input[type=button] {
+                height: 65px;
+                font-size: 18px;
+            }
+
+            #display {
+                height: 130px;
+                font-size: 38px;
+            }
+
+            #buttons {
+                gap: 5px;
+            }
+        }
+    </style>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+
+            let degree = true;
+            let inverse = false;
+            let answer = 0;
+            let expression = "";
+
+            // 숫자 및 연산자 버튼
+            $('.num, .op').click(function() {
+                let value = $(this).val();
+
+                if (value == "=") {
+                    calculate();
+                }
+                else if (value == "AC") {
+                    expression = "";
+                    $('#display').val("0");
+                }
+                else {
+                    expression += value;
+                    $('#display').val(expression);
+                }
+            });
+
+            // 공학용 함수 버튼
+            $('.func').click(function() {
+                let value = $(this).val();
+
+                if (value == "Inv") {
+                    inverse = !inverse;
+
+                    if (inverse) {
+                        $('.inv').text("asin");
+                    }
+                    else {
+                        $('.inv').text("sin");
+                    }
+                }
+                else if (value == "DEG") {
+                    degree = true;
+                    $('#deg').addClass('selected');
+                    $('#rad').removeClass('selected');
+                }
+                else if (value == "RAD") {
+                    degree = false;
+                    $('#rad').addClass('selected');
+                    $('#deg').removeClass('selected');
+                }
+                else if (value == "Ans") {
+                    expression += answer;
+                    $('#display').val(expression);
+                }
+                else if (value == "π") {
+                    expression += "π";
+                    $('#display').val(expression);
+                }
+                else if (value == "e") {
+                    expression += "e";
+                    $('#display').val(expression);
+                }
+                else if (value == "x!") {
+                    expression += "!";
+                    $('#display').val(expression);
+                }
+                else if (value == "xʸ") {
+                    expression += "^";
+                    $('#display').val(expression);
+                }
+                else if (value == "√") {
+                    expression += "sqrt(";
+                    $('#display').val(expression);
+                }
+                else if (value == "EXP") {
+                    expression += "*10^";
+                    $('#display').val(expression);
+                }
+                else if (value == "%") {
+                    expression += "%";
+                    $('#display').val(expression);
+                }
+                else {
+                    if (value == "sin") {
+                        expression += inverse ? "asin(" : "sin(";
+                    }
+                    else if (value == "cos") {
+                        expression += inverse ? "acos(" : "cos(";
+                    }
+                    else if (value == "tan") {
+                        expression += inverse ? "atan(" : "tan(";
+                    }
+                    else if (value == "ln") {
+                        expression += "ln(";
+                    }
+                    else if (value == "log") {
+                        expression += "log(";
+                    }
+
+                    $('#display').val(expression);
+                }
+            });
+
+            // 계산하기
+            function calculate() {
+                try {
+                    if (expression == "") return;
+
+                    let result = solve(expression);
+
+                    if (!Number.isFinite(result)) {
+                        throw new Error("계산 오류");
+                    }
+
+                    answer = result;
+                    $('#display').val(result);
+                    expression = String(result);
+                }
+                catch(error) {
+                    $('#display').val("Error");
+                    expression = "";
+                }
+            }
+
+            // 수식 계산
+            function solve(str) {
+
+                let tokens = str.match(/(?:\d+\.?\d*|\.\d+)|[a-zA-Z]+|π|[+\-*/^()%!]/g);
+
+                if (!tokens) {
+                    throw new Error("잘못된 수식");
+                }
+
+                let pos = 0;
+
+                function peek() {
+                    return tokens[pos];
+                }
+
+                function eat() {
+                    return tokens[pos++];
+                }
+
+                function primary() {
+                    let token = eat();
+                    let value;
+
+                    if (token == "(") {
+                        value = addSub();
+                        if (eat() != ")") throw new Error();
+                    }
+                    else if (token == "-") {
+                        value = -primary();
+                    }
+                    else if (token == "+") {
+                        value = primary();
+                    }
+                    else if (token == "π") {
+                        value = Math.PI;
+                    }
+                    else if (token == "e") {
+                        value = Math.E;
+                    }
+                    else if (!isNaN(token)) {
+                        value = Number(token);
+                    }
+                    else if (token == "sin" || token == "cos" ||
+                             token == "tan" || token == "asin" ||
+                             token == "acos" || token == "atan" ||
+                             token == "ln" || token == "log" ||
+                             token == "sqrt") {
+
+                        let x = primary();
+
+                        if (token == "sin") {
+                            value = Math.sin(degree ? x * Math.PI / 180 : x);
+                        }
+                        else if (token == "cos") {
+                            value = Math.cos(degree ? x * Math.PI / 180 : x);
+                        }
+                        else if (token == "tan") {
+                            value = Math.tan(degree ? x * Math.PI / 180 : x);
+                        }
+                        else if (token == "asin") {
+                            value = Math.asin(x) * (degree ? 180 / Math.PI : 1);
+                        }
+                        else if (token == "acos") {
+                            value = Math.acos(x) * (degree ? 180 / Math.PI : 1);
+                        }
+                        else if (token == "atan") {
+                            value = Math.atan(x) * (degree ? 180 / Math.PI : 1);
+                        }
+                        else if (token == "ln") {
+                            value = Math.log(x);
+                        }
+                        else if (token == "log") {
+                            value = Math.log10(x);
+                        }
+                        else {
+                            value = Math.sqrt(x);
+                        }
+                    }
+                    else {
+                        throw new Error();
+                    }
+
+                    while (peek() == "!" || peek() == "%") {
+                        let op = eat();
+
+                        if (op == "!") {
+                            if (value < 0 || !Number.isInteger(value) || value > 170) {
+                                throw new Error();
+                            }
+
+                            let result = 1;
+                            for (let i = 1; i <= value; i++) {
+                                result *= i;
+                            }
+                            value = result;
+                        }
+                        else {
+                            value = value / 100;
+                        }
+                    }
+
+                    return value;
+                }
+
+                function power() {
+                    let value = primary();
+
+                    if (peek() == "^") {
+                        eat();
+                        value = Math.pow(value, power());
+                    }
+
+                    return value;
+                }
+
+                function mulDiv() {
+                    let value = power();
+
+                    while (peek() == "*" || peek() == "/") {
+                        let op = eat();
+                        let next = power();
+
+                        if (op == "*") value *= next;
+                        else value /= next;
+                    }
+
+                    return value;
+                }
+
+                function addSub() {
+                    let value = mulDiv();
+
+                    while (peek() == "+" || peek() == "-") {
+                        let op = eat();
+                        let next = mulDiv();
+
+                        if (op == "+") value += next;
+                        else value -= next;
+                    }
+
+                    return value;
+                }
+
+                let result = addSub();
+
+                if (pos != tokens.length) {
+                    throw new Error();
+                }
+
+                return result;
+            }
+
+            // 기록 버튼
+            $('#history').click(function() {
+                expression = "";
+                $('#display').val("0");
+            });
+
+        });
+    </script>
+</head>
+
+<body>
+    <div id="calc">
+
+        <input type="text" id="display" value="0" readonly>
+
+        <div id="buttons">
+
+            <div class="mode">
+                <input type="button" class="func selected" id="deg" value="DEG">
+                <input type="button" class="func" id="rad" value="RAD">
+            </div>
+
+            <input type="button" class="func" value="x!">
+            <input type="button" class="func" value="(">
+            <input type="button" class="func" value=")">
+            <input type="button" class="func" value="%">
+            <input type="button" class="num" value="AC">
+
+            <input type="button" class="func" value="Inv">
+            <input type="button" class="func inv" value="sin">
+            <input type="button" class="func" value="ln">
+            <input type="button" class="num" value="7">
+            <input type="button" class="num" value="8">
+            <input type="button" class="num" value="9">
+            <input type="button" class="op" value="/">
+
+            <input type="button" class="func" value="π">
+            <input type="button" class="func" value="cos">
+            <input type="button" class="func" value="log">
+            <input type="button" class="num" value="4">
+            <input type="button" class="num" value="5">
+            <input type="button" class="num" value="6">
+            <input type="button" class="op" value="*">
+
+            <input type="button" class="func" value="e">
+            <input type="button" class="func" value="tan">
+            <input type="button" class="func" value="√">
+            <input type="button" class="num" value="1">
+            <input type="button" class="num" value="2">
+            <input type="button" class="num" value="3">
+            <input type="button" class="op" value="-">
+
+            <input type="button" class="func" value="Ans">
+            <input type="button" class="func" value="EXP">
+            <input type="button" class="func" value="xʸ">
+            <input type="button" class="num" value="0">
+            <input type="button" class="num" value=".">
+            <input type="button" class="op equal" value="=">
+            <input type="button" class="op" value="+">
+
+        </div>
+    </div>
+</body>
+</html>
