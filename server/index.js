@@ -20,6 +20,6 @@ const server = http.createServer((req,res) => {
         res.statusCode = 200;
         res.end("HOME");
     }
+});
 server.listen(PORT, () => {
     console.log(`${PORT}번 포트에서 서버 실행`);
-});
